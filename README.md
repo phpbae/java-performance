@@ -210,4 +210,32 @@ hashCode()를 이용하면, 주소값을 출력했다. String 클래스같은 �
 2.collection framework
 - 컬렉션 프레임워크는 자바에서 데이터의 집합을 관리하기 쉽게 제공해주는 표준 클래스들이다.
 
-[컬렉션프레임워크](./image/collection.jpg)
+![컬렉션프레임워크](./image/collection.jpg)
+- ArrayList / Vector / LinkedList / Stack은 List 인터페이스를 구현한 클래스다. 마찬가지로, HashSet / TreeMap 은 Set 인터페이스를 구현한거고. Map 인터페이스를 구현한 클래스들도 존재한다.
+
+3.그래서 어디에 담아야하니..??
+- Set 인터페이스 : HashSet, TreeSet, LinkedHashSet (중복을 허용하지 않는다)
+- HashSet : 해쉬테이블에 순서에 상관없이 데이터를 저장.
+- TreeSet : red-black 이라는 트레이 데이터를 저장, 정렬방법 지정이 가능하며 데이터를 담으면서 정렬을 하기 때문에 느리다.
+- LinkedHashSet : 해쉬테이블에 데이터를 담으며, 담은 순서(추가된 순서)에 따라 순서가 정해짐.
+- 저장성능 : HashSet > LinkedHashSet > TreeSet
+- HashSet에 데이터를 담을 시, 크기를 미리 지정해주면 큰 차이는 나지 않지만 성능 향상
+- 읽기성능 : LinkedHashSet > HashSet > TreeSet (for문으로 반복)
+- TreeSet은 다 느린데, 쓰지말아야 하는건가? 느린 이유는 정렬 프로세스가 있어서 그렇다(NavigableSet<E>). 만약, 데이터를 순서에 따라 탐색하는 작업이 필요하면 TreeSet을 사용하면 좋다.
+
+---
+- List 인터페이스 : ArrayList, Vector, LinkedList (중복을 허용 / Index를 이용하여, 데이터를 검색 및 추가 삭제 가능.)
+- ArrayList : Vector와 같으나, 동기화 처리가 되어있지 않다. 순차접근 / 임의접근 가능
+- Vector : 동기화 처리가 되어있다.(ArrayList의 구버전)
+- LinkedList : ArrayList와 동일하지만, 양방향 포인터 구조로 데이터를 삽입. 순차접근만 가능.
+- 저장성능(add()) : ArrayList > Vector > LinkedList (크게 차이는 안남)
+- 읽기성능(get()) : ArrayList > Vector > LinkedList (ArrayList가 압도적으로 빠름)
+- LinkedList 읽기성능이 느린 이유는 public interface Deque<E> extends Queue<E> 이러한 친구를 상속받기 때문. 그래서, peek()를 이용하면 제일 빠르다. -> 그래서, LinkedList를 사용하는 경우, peek() / poll() 을 사용해야한다.
+- 삭제 또는 추가성능 : ArrayList > LinkedList > Vector / 삭제는 ArrayList가 압도적으로 빠름.
+
+- 추가 삭제 시, 성능차이가 발생하는 이유는 그림을 보면 알 수 있다.
+중간에 삽입 / 삭제가 일어나면 그만큼 데이터를 앞으로 이동 또는 뒤로 이동하는 연산이 발생하기 때문이다. 반면에, 제일 마지막값을 삭제하거나 추가하면 위와같은 연산이 발생하지 않기때문에 빠르다.
+![list1](./image/1.png)
+![list2](./image/2.png)
+
+- LinkedList는 추가 / 삭제 시 ArrayList처럼 사이즈를 늘리고 줄여주는(인덱스를 채워주는) 연산이 발생하지 않기 때문에.(왜? Node의 주소만 서로 연결시켜주면 되기 때문.) 그래서, 추가 / 삭제가 빈번하게 발생할 경우, LinkedList는 좋은 선택이 될 수 있다.
