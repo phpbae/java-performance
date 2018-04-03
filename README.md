@@ -209,3 +209,5 @@ hashCode()를 이용하면, 주소값을 출력했다. String 클래스같은 �
 
 2.collection framework
 - 컬렉션 프레임워크는 자바에서 데이터의 집합을 관리하기 쉽게 제공해주는 표준 클래스들이다.
+
+[컬렉션프레임워크](./image/collection.jpg)
