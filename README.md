@@ -294,5 +294,87 @@ synchronized 로 시작되는 메서드들이 동기화가 처리된 클래스�
 - Logger를 사용하여 로그를 처리하는 것.
 - 만약, Logger를 사용하기 어려운 경우는 자체 로거 클래스를 만드는 방법과 시스템 로그를 컴파일 할 때, 삭제하는 방법이 있음.(자체로거 보다는 좋은 오픈소스를 추천)
 - 컴파일 할 때, 시스템 로그 삭제 방법은 boolean 타입의 변수(final)를 통해 on/off 하는 방식으로 작동하게 하면 된다.(또는 properties를 읽어서 사용해도 좋을듯?) 보통 주석처리를 하는데(나도 그랬다;;) 일괄변경이 가능하게 해야하는데.. 몇천줄 몇만줄 되는거 하나하나 주석처리 하면서 언제 수정을 할건가 그리고 일괄주석처리를 잘못하면 컴파일 오류가 발생할 확률도 높다.
-- 로거를 사용하면 로거 객체를 생성해야 하는데, 운영 로그는 괜찮지만 디버그 레벨에 로그 또한 객체가 생성되어져 코드로 남아 있을 확률이 높다.(아무일도 안하면 GC가 수행이 되고.. GC 수행시간이 발생하면 메모리와 시간이 소요된다) 결론적으로 디버그 로그는 삭제해서 불필요한 리소스 낭비가 없도록 해야하며, 이런 문제점을 개선해서 쉽게 사용하느게 slf4j 라는 로거가 있다.(문자열 더하기 연산 처리 등..)
+- 로거를 사용하면 로거 객체를 생성해야 하는데, 운영 로그는 괜찮지만 디버그 레벨에 로그 또한 객체가 생성되어져 코드로 남아 있을 확률이 높다.(아무일도 안하면 GC가 수행이 되고.. GC 수행시간이 발생하면 메모리와 시간이 소요된다) 결론적으로 디버그 로그는 삭제해서 불필요한 리소스 낭비가 없도록 해야하며, 이런 문제점을 개선해서 쉽게 사용하느게 slf4j / logBack 라는 로거가 있다.(문자열 더하기 연산 처리 등..)
+
 - 예외 처리시에는 필요한 정보만 보는게 좋다. printStackTrace() 로 보통 찍고 넘어가는데, 콘솔에 이 메시지가 찍히면.. 알아보기도 힘들고 자바의 예외 스택 정보는 로그를 최대 100개 까지 프린트하기 때문에 서버의 성능에도 많은 부하를 준다. 그래서, 예외 처리 시 원하는 스택 정보를 가공하여 메시지를 처리하는 것도 좋은 방법이다.
+
+---
+
+### JSP와 Servlet의 기본개념 및 생명주기
+1.JSP ?
+- Java Server Page(JSP) 를 의미하며, 클라이언트 요청으로 부터 동적 컨텐츠를 생성하여 응답해주는 역할을 하기 위한 기술.
+- JSP는 Servlet으로 변환이 되기 때문에, JSP 버전과 Servlet 버전은 깊은 연관성을 가진다.
+- JSP 2.2 Servlet 3.0 / JSP 2.3 Servlet 3.1
+
+2.Servlet ?
+- 클라이언트의 요청을 처리하고, 응답해주는 Servlet API 규칙을 지킨 기술. 흔히, 자바로 구현된 CGI라고 말합니다.(우리가 보통 서블릿 클래스를 작성하면, HttpServlet 추상클래스를 상속받는다.)
+
+![ServletAPI](./image/servlet_api.gif)
+
+3.생명주기(LifeCycle)
+- JSP(Java Server Page)
+
+![JSP](./image/jsp-life-cycle.gif)
+
+1. JSP 페이지 호출
+2. JSP 페이지 컴파일(Servlet 으로 변신!)
+3. 클래스 로딩
+4. 서블릿 클래스의 인스턴스 생성
+5. jspInit() 호출
+6. _jspService() 호출
+7. jspDestroy() 호출(JSP의 서블릿을 제거할 때, 또는 WAS 종료시.) <br>
+JSP도 결국은 Servlet으로 변환이 된다. 하지만, 약간 차이점이 있다면 Servlet API를 확장한 HttpJspPage 인터페이스를 구현한 서블릿이다. <br>
+이미 인스턴스가 존재하거나, 변경되지 않으면 2~4번 작업이 생략 된다.
+
+
+- Servlet
+
+![Servlet](./image/servlet.jpg)
+
+1. 서블릿 클래스 로딩
+2. 서블릿 클래스의 인스턴스 생성
+3. init() 호출 : 최초 1번 호출
+4. service() 호출
+5. destroy() 호출 <br>
+서블릿은 JVM에 여러객체를 생성하지 않는다, 쓰레드풀에서 살아있는 서블릿을 꺼내오거나, 새로운 쓰레드를 만들어서 서블릿의 service()를 호출하여 공유.
+
+
+
+
+![JSPAPI](./image/jspapi.jpg)
+
+Servlet 인터페이스를 상속받은 JspPage 인터페이스가 HttpJspPage를 상속하는 구조이다.
+
+```Java
+package javax.servlet;
+import java.io.IOException;
+public interface Servlet {
+    void init(ServletConfig var1) throws ServletException;
+
+    ServletConfig getServletConfig();
+
+    void service(ServletRequest var1, ServletResponse var2) throws ServletException, IOException;
+
+    String getServletInfo();
+
+    void destroy();
+}
+----------------------------------------
+package javax.servlet.jsp;
+import javax.servlet.Servlet;
+public interface JspPage extends Servlet {
+    void jspInit();
+    void jspDestroy();
+}
+----------------------------------------
+package javax.servlet.jsp;
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+public interface HttpJspPage extends JspPage {
+    void _jspService(HttpServletRequest var1, HttpServletResponse var2) throws ServletException, IOException;
+}
+```
+
+- 정리하며, JSP는 Servlet으로 변환이 되며, 생명주기는 Servlet과 유사하다.(왜? Servlet 인터페이스의 init / service / destory를 확장한 메소드를 가지고 있음.) 웹 컨테이너가 서블릿을 인스턴스화 하고 init() -> jspInit() 호출, service() 에서 _jspService() 를 호출한다, 웹 애플리케이션이 종료되면.. destory() -> jspDestroy()를 호출한다
