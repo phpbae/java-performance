@@ -393,9 +393,11 @@ public interface HttpJspPage extends JspPage {
 - 사용하지 않는 메모리 인식
 
 3.JVM 메모리 구조
+
 ![JVM](./image/jvm.png)
 
 위 사진은 JVM이 플랫폼종류에 의존적이지 않고, 독립적으로 실행이 되는 구조를 설명.
+
 ![실행과정](./image/자바실행과정.PNG)
 
 ![java8](./image/java8.jpg)
@@ -431,7 +433,7 @@ Heap 영역에는 new 연산자로 생성한 객체 또는 인스턴스, 배열�
 - Major GC : Old 영역에서 발생하는 GC
 - GC가 발생할 때, 객체가 각 영역에서 다른 영역으로 이동할 때, 병목현상이 발생하면서 성능에 영향을 주게 됩니다.(그래서, JVM에서는 쓰레드 로컬 할당 버퍼를 사용)
 
-- 5가지 GC 방식을 제공(JDK 7 이상) WAS 또는 자바 실행 시, 옵션을 지정하여 선택 가능
+- 5가지 GC 방식을 제공(JDK 7 이상) WAS 또는 자바 실행 시, 옵션을 지정하여 선택 가능 <br>
 1.Serial Collector (이하 시리얼 콜렉터) <br>
 2.Parallel Collector (이하 병렬 콜렉터) <br>
 3.Parallel Compacting Collector (이하 병렬 컴팩팅 콜렉터) <br>
