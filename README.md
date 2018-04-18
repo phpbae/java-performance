@@ -378,3 +378,79 @@ public interface HttpJspPage extends JspPage {
 ```
 
 - 정리하며, JSP는 Servlet으로 변환이 되며, 생명주기는 Servlet과 유사하다.(왜? Servlet 인터페이스의 init / service / destory를 확장한 메소드를 가지고 있음.) 웹 컨테이너가 서블릿을 인스턴스화 하고 init() -> jspInit() 호출, service() 에서 _jspService() 를 호출한다, 웹 애플리케이션이 종료되면.. destory() -> jspDestroy()를 호출한다
+
+---
+
+### Story 17 : 도대체 GC는 언제 발생할까?
+
+1.GC 란?
+- Garbage Collector (: GC)
+- 자바에서 메모리를 관리.
+- 자바에서는 GC 알고리즘을 통하여 메모리를 자동으로 관리. 개발자가 메모리를 처리하기 위해 로직을 만들 필요가 없고 절대로 만들어서도 안된다.
+
+2.GC의 역할
+- 메모리 할당
+- 사용 중인 메모리 인식
+- 사용하지 않는 메모리 인식
+
+3.JVM 메모리 구조
+![JVM](./image/jvm.png)
+
+위 사진은 JVM이 플랫폼종류에 의존적이지 않고, 독립적으로 실행이 되는 구조를 설명.
+![실행과정](./image/자바실행과정.PNG)
+
+![java8](./image/java8.jpg)
+
+Java8 에서 Permanent 영역이 사라지고, METASPACE라는 네이티브 메모리영역에 메타데이터들이 이동.
+
+- PC 레지스터
+- 스택 영역
+- 힙 영역
+- 메서드 영역
+- 런타임 상수 풀
+- 네이티브 메서드 스택
+
+뭔가 크게 6가지로 나뉘어 지는데, 이영역 중에서, GC가 발생하는 부분은 Heap 영역이다.
+Heap 영역에는 new 연산자로 생성한 객체 또는 인스턴스, 배열이 메모리에 쌓인다. 그리고, 힙 영역과 메서드 영역을 JVM 실행 시 생성된다.
+
+![RuntimeDataArea](./image/RuntimeDataAreas.png)
+
+- Heap 영역은 크게 Young / Old / Perm 3가지 영역으로 나뉜다.(Java8에서는 Perm 영역 빠이)
+- Young : Eden / Survivor 0 / Survivor 1
+- Old : 메모리 영역
+
+- 일단, 메모리에 객체가 생성되면 Eden 영역에 할당한다.
+- Eden 영역이 꽉 차면, 옮겨지거나, 삭제가 되는데. 옮겨지는 영역이 Survivor 영역이다.
+- Survivor 영역 중 한 곳은 무조건 비어져 있다. 비어져 있는 곳은 Eden 영역에 있던 GC후에 살아남은 객체들이 이동한다.
+- Eden 영역이 꽉 차서, 옮겨진 객체들이 할당된 Survivor 영역이 꽉 차면, GC가 되면서, Eden에 있는 객체와 꽉 찬 Survivor에 있는 객체가 비어져 있는 Survivor로 이동한다.
+
+![mem](./image/Java-Memory-Model.png)
+
+이러한 작업을 반복하면서, Survivor0 / Survivor1 을 왔다갔다 하던 객체들은 Old 영역으로 이동된다. 그리고 Young 영역에서 바로 Old 영역으로 넘어가는 객체들이 존재하는데.. 크기가 큰 객체들이다.(Survivor 영역의 크기가 10MB 인데, 객체가 20MB 짜리면. 담을 수가 없으니.. 바로 Old로 넘긴다.)
+
+- Minor GC :  Young 영역에서 발생하는 GC
+- Major GC : Old 영역에서 발생하는 GC
+- GC가 발생할 때, 객체가 각 영역에서 다른 영역으로 이동할 때, 병목현상이 발생하면서 성능에 영향을 주게 됩니다.(그래서, JVM에서는 쓰레드 로컬 할당 버퍼를 사용)
+
+- 5가지 GC 방식을 제공(JDK 7 이상) WAS 또는 자바 실행 시, 옵션을 지정하여 선택 가능
+1.Serial Collector (이하 시리얼 콜렉터) <br>
+2.Parallel Collector (이하 병렬 콜렉터) <br>
+3.Parallel Compacting Collector (이하 병렬 컴팩팅 콜렉터) <br>
+4.Concurrent Mark-Sweep (CMS) Collector (이하 CMS 콜렉터) <br>
+5.Garbage First Collector (이하 G1 콜렉터) <br>
+
+위의 내용들은 너무 많으니 생략. 어떤 GC를 사용하던 애플리케이션 성능에 영향을 미친다는 점을 기억하자. 만약, System.gc() / Runtime.getRuntime().gc() 를  포함시키면 그만큼 응답속도에 영향을 미치니.. 그러지말자
+
+- Java8 에서는 PremGen 영역이 사라져서, Heap 영역에서 사용할 수 있는 메모리가 늘었다. PremGen에서 다루던 데이터는 METASPACE 즉. native memory 영역으로 옮겨갔다.(일부는 heap으로..)
+
+---
+
+### Java 컴파일 및 실행과정.
+
+- JDK : Java Development Kit
+- JDK = JRE + (JavaDoc, debugging tools, javac)
+- JRE = java + JVM + 라이브러리
+
+- Java 소스 -> 컴파일(javac.exe) -> 바이트 코드(.class) -> JVM(-> 클래스 로딩 -> 배치 -> 실행)
+
+- JVM은 실행 시, 가장 먼저 스태틱 영역에 java.lang 패키지를 반드시 포함시킨다. 다음은, 개발자가 작성한 import 패키지를 스태틱 영역에 포함 시켜준다. 마지막으로는 자바코드내에 있는 모든 클래스를 스태틱 영역에 포함시킨다.
